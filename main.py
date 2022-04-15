@@ -30,19 +30,6 @@ def test_solver_big():
     print_solved(mySolver)
     
     
-def test_solver_25():
-    column_constraints = [[1,3],[1],[5],[5],[6,2],[6,3],[6,2],[3],[2,2],[1,2]]
-    row_constraints = [[1,4],[4],[5,1],[5,2],[5],[3,3],[1,1],[1,1,1],[6],[6]]
-    
-    newState = Field(column_values=column_constraints,
-                     row_values=row_constraints)
-    
-    mySolver = Solver(newState)
-    
-    num = mySolver.solve()
-    print(f"{num} iterations")
-    print_solved(mySolver)
-    
  
 def print_solved(solver:Solver):
     print()
@@ -54,4 +41,4 @@ def print_solved(solver:Solver):
 
 if __name__ == "__main__":
     # logging.basicConfig(level=logging.INFO)
-    test_solver_25()
+    test_solver_big()
