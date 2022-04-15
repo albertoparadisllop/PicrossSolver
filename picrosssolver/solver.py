@@ -38,8 +38,8 @@ class Solver:
             if stale_counter > stale_unsolvable_threshold:
                 logging.warning("UNSOLVABLE")
                 logging.info(self.current_state)
-                return False
-            return True
+                return i
+            return i
     
     def solve_step(self, column:int=None, row:int=None) -> bool:
         if column is not None and row is not None:
@@ -158,6 +158,3 @@ def get_conclusion_from_bar_position(position_res_list):
         return first_res
     else:
         return State.INDET
-
-
-### TODO: Continue solve
