@@ -16,8 +16,6 @@ If the nonogram is not solvable by looking at individual rows/columns, it will n
 
 ## Examples
 
-Both of the following examples are available in the `main.py` file.
-
 An example for Pictopix's 1st level:
 
 ```python
