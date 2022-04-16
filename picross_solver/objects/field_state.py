@@ -1,8 +1,10 @@
 from copy import deepcopy
 
-from numpy import full as np_full, transpose
+from numpy import full as np_full
+from numpy import transpose
 
-from picrosssolver.objects.state import State
+from picross_solver.objects.state import State
+
 
 class Field:
     """Represents a picross field with its constraints and grid.

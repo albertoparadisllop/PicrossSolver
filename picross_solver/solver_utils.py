@@ -1,10 +1,11 @@
-from numpy import array as np_array
-from picrosssolver.objects.state import State
-from picrosssolver.objects.field_state import Field
-from picrosssolver.exceptions.picross_exceptions import SolverLogicException
-
-from copy import deepcopy
 import logging
+from copy import deepcopy
+
+from numpy import array as np_array
+
+from picross_solver.exceptions.picross_exceptions import SolverLogicException
+from picross_solver.objects.field_state import Field
+from picross_solver.objects.state import State
 
 
 def get_bar_and_constraints(current_state:Field, column:int=None, row:int=None) -> tuple[list[int], list[int]]:

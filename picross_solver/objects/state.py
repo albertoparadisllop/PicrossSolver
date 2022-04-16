@@ -1,5 +1,6 @@
 from enum import Enum, auto
 
+
 class State(Enum):
     """Represents a cell state in picross
     """

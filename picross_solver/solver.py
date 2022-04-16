@@ -1,11 +1,11 @@
-from numpy import array_equal
 import logging
 
-from picrosssolver.objects.field_state import Field
-from picrosssolver.exceptions.picross_exceptions import UnsolvableException
-from picrosssolver.objects.state import State
-import picrosssolver.solver_utils as SU
+from numpy import array_equal
 
+import picross_solver.solver_utils as SU
+from picross_solver.exceptions.picross_exceptions import UnsolvableException
+from picross_solver.objects.field_state import Field
+from picross_solver.objects.state import State
 
 
 class Solver:

@@ -1,7 +1,7 @@
-from picrosssolver.solver import Solver
-from picrosssolver.objects.field_state import Field
-
 import logging
+
+from picross_solver.objects.field_state import Field
+from picross_solver.solver import Solver
 
 
 def test_solver_small():
