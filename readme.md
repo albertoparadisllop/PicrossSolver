@@ -59,4 +59,4 @@ By default uses an algorithm, `Solver.SPINMEM` where the possibilities for each 
 
 ## Other
 
-Thanks to my friend Chalbus for getting convincing me to do this. Please [check them out on twitter](https://twitter.com/Chalbusoid). :D
+Thanks to my friend Chalbus for pushing me to finish this. Please [check them out on twitter](https://twitter.com/Chalbusoid). :D
