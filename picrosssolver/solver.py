@@ -10,60 +10,122 @@ import logging
 class Solver:
     
     SPIN = 1
+    SPINMEM = 2
     
     def __init__(self, field:Field):
         self.current_state = field
         self.solved = self.current_state.is_solved()
-    
-    def solve(self, algo=SPIN):
-        if(algo==Solver.SPIN):
-            cols, rows=self.current_state.field_arr.shape
-            i = 0
-            stale_counter = 0
-            stale_unsolvable_threshold = cols+rows+1
-            while not self.current_state.is_solved() and stale_counter <= stale_unsolvable_threshold:
-                i_new = i%(cols+rows)
-                if i_new // cols == 0:
-                    # Cols
-                    logging.info(f"CHECKING COLUMN {i_new} - Stale {stale_counter}/{stale_unsolvable_threshold}")
-                    res = self.solve_step(column=i_new, row=None)
-                else:
-                    # Rows
-                    logging.info(f"CHECKING ROW {i_new%cols} - Stale {stale_counter}/{stale_unsolvable_threshold}")
-                    res = self.solve_step(column = None, row=i_new%cols)
-                if res:
-                    logging.info(self.current_state)
-                stale_counter = 0 if res else stale_counter+1
-                i += 1
-            if stale_counter > stale_unsolvable_threshold:
-                logging.warning("UNSOLVABLE")
-                logging.info(self.current_state)
-                return i
-            return i
-    
-    def solve_step(self, column:int=None, row:int=None) -> bool:
-        if column is not None and row is not None:
-            raise SolverLogicException("Only a row or a column can be specified, not both")
+        self.cols, self.rows = self.current_state.field_arr.shape
+        self.bar_memory = []
+        self.stale_counter = 0
+        self.stale_threshold = self.cols + self.rows + 1
         
-        current_bar = None
-        current_contraints = None
-        if column is not None:
-            current_bar = self.current_state.field_arr[column,:]
-            current_contraints = self.current_state.column_values[column]
-            logging.debug(f"COLUMN")
-        elif row is not None:
-            current_bar = self.current_state.field_arr[:,row]
-            current_contraints = self.current_state.row_values[row]
-            logging.debug(f"ROW")
-        else:
-            raise SolverLogicException("No row or column to solve specified in Solve Step")
-
+    def stale_increase(self):
+        self.stale_counter += 1
+        
+    def stale_reset(self):
+        self.stale_counter = 0
+        
+    def is_stale(self):
+        return self.stale_counter > self.stale_threshold
+    
+    def solve(self, algo=SPINMEM):
+        if(algo==Solver.SPIN):
+            res = self.solve_spin()
+        elif algo == Solver.SPINMEM:
+            res = self.solve_spin_mem()
+        return res
+    
+    def solve_spin(self):
+        # Runs around calculatng all possibilities based on the current state on the board
+        i = 0
+        while not self.current_state.is_solved() and not self.is_stale():
+            i_new = i%(self.cols+self.rows)
+            if i_new // self.cols == 0:
+                # Cols
+                logging.info(f"CHECKING COLUMN {i_new} - Stale {self.stale_counter}/{self.stale_threshold}")
+                res = self.solve_step(column=i_new, row=None)
+            else:
+                # Rows
+                logging.info(f"CHECKING ROW {i_new%self.cols} - Stale {self.stale_counter}/{self.stale_threshold}")
+                res = self.solve_step(column = None, row=i_new%self.cols)
+            if res:
+                logging.info(self.current_state)
+            self.stale_reset() if res else self.stale_increase()
+            i += 1
+        if self.is_stale():
+            logging.warning("UNSOLVABLE")
+            logging.info(self.current_state)
+        return i
+    
+    def solve_spin_mem(self):
+        # Same as normal spin but stores the possibilities on each row/col so it doesnt have to recalculate them,
+        # Simply re-filters them on each go
+        i = 0
+        # Store in mem
+        for i in range(self.rows+self.cols):
+            row_val = None
+            col_val = None
+            if i // self.cols == 0:
+                # Cols
+                col_val = i
+            else:
+                # Rows
+                row_val = i%self.cols
+            current_bar, current_contraints = get_bar_and_constraints(current_state=self.current_state,
+                                                                        column=col_val, row=row_val)
+            possibilities = get_possibilities_from_constraints(constraints=current_contraints,
+                                                               bar_length=len(current_bar),
+                                                               current_bar_filter=current_bar)
+            self.bar_memory.append(possibilities)
+            self.update_bar(current_bar, get_result_from_possibilities(possibilities), column = col_val, row = row_val)
+        # Now we iterate filtering on the possibility memory and recalculating the result
+        while not self.current_state.is_solved() and not self.is_stale():
+            i_new = i%(self.cols+self.rows)
+            col_val = None
+            row_val = None
+            if i_new // self.cols == 0:
+                # Cols
+                logging.info(f"CHECKING COLUMN {i_new} - Stale {self.stale_counter}/{self.stale_threshold}")
+                col_val = i_new
+            else:
+                # Rows
+                logging.info(f"CHECKING ROW {i_new%self.cols} - Stale {self.stale_counter}/{self.stale_threshold}")
+                row_val = i_new%self.cols
+            current_bar, current_contraints = get_bar_and_constraints(current_state=self.current_state,
+                                                                      column=col_val, row=row_val)
+            possibilities = self.bar_memory[i_new]
+            new_possibilities = []
+            for possibility in possibilities:
+                if bar_compatible(current_bar, possibility):
+                    new_possibilities.append(possibility)
+            self.bar_memory[i_new] = new_possibilities
+            new_bar = get_result_from_possibilities(new_possibilities)
+            res = self.update_bar(current_bar, new_bar, col_val, row_val)
+            if res:
+                logging.info(self.current_state)
+            self.stale_reset() if res else self.stale_increase()
+            i += 1
+        if self.is_stale():
+            logging.warning("UNSOLVABLE")
+            logging.info(self.current_state)
+        return i
+        
+        
+    def solve_step(self, column:int=None, row:int=None) -> bool:
+        
+        current_bar, current_contraints = get_bar_and_constraints(self.current_state, column, row)
+        
         logging.debug(f"{current_bar}")
         logging.debug(f"Constraints: {current_contraints}")
         
         new_bar = solve_single_bar(current_bar, current_contraints, bar_length=len(current_bar))
         logging.debug(new_bar)
 
+        return self.update_bar(current_bar=current_bar, new_bar=new_bar,
+                               column=column, row=row)
+
+    def update_bar(self, current_bar, new_bar, column=None, row=None):
         # If nothing was deduced, return False, else update state and return True
         if array_equal(current_bar, new_bar):
             return False
@@ -74,7 +136,20 @@ class Solver:
                 self.current_state.field_arr[:,row] = new_bar
             return True
             
-
+def get_bar_and_constraints(current_state, column=None, row=None):
+    if column is not None and row is not None:
+            raise SolverLogicException("Only a row or a column can be specified, not both")
+    if column is not None:
+        current_bar = current_state.field_arr[column,:]
+        current_contraints = current_state.column_values[column]
+        logging.debug(f"COLUMN")
+    elif row is not None:
+        current_bar = current_state.field_arr[:,row]
+        current_contraints = current_state.row_values[row]
+        logging.debug(f"ROW")
+    else:
+        raise SolverLogicException("No row or column to solve specified in Solve Step")
+    return current_bar, current_contraints
 
 def solve_single_bar(bar, constraints, bar_length):
     # Get all possibilities for those constraints in the bar
