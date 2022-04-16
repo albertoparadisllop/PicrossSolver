@@ -234,4 +234,6 @@ class Solver:
             elif row is not None:
                 self.current_state.field_arr[:,row] = new_bar
             return True
-            
+        
+    def __repr__(self):
+        return repr(self.current_state)
