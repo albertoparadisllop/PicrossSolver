@@ -12,7 +12,7 @@ Little for-fun project. Expect spaghetti code.
 
 I could make it easier to use with a single command, but eh, this works.
 
-If the nonogram is not solvable by looking at individual rows/columns,w it will not work.
+If the nonogram is not solvable by looking at individual rows/columns, it will not work.
 
 ## Examples
 
@@ -52,3 +52,7 @@ mySolver = Solver(newState)
 mySolver.solve()
 print(solver.current_state)
 ```
+
+## Notes
+
+By default uses an algorithm, `Solver.SPINMEM` where the possibilities for each "bar" is stored in the Solver state, and filters according to those. The alternate algorithm, `Solver.SPIN` does the same but recalculates all of the bar possibilities given the constraints on each iteration, so its quite a bit slower. Just use `Solver.SPINMEM` if you dont mind the spaghetti code, and give `Solver.SPIN` a try if the other one fails for any reason.
