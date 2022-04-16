@@ -1,0 +1,1 @@
+from picross_solver.exceptions.picross_exceptions import SolverLogicException, UnsolvableException

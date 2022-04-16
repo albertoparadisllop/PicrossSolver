@@ -3,9 +3,8 @@ from copy import deepcopy
 
 from numpy import array as np_array
 
-from picross_solver.exceptions.picross_exceptions import SolverLogicException
-from picross_solver.objects.field_state import Field
-from picross_solver.objects.state import State
+from picross_solver.exceptions import SolverLogicException
+from picross_solver.objects import Field, State
 
 
 def get_bar_and_constraints(current_state:Field, column:int=None, row:int=None) -> tuple[list[int], list[int]]:

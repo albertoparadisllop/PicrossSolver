@@ -3,9 +3,8 @@ import logging
 from numpy import array_equal
 
 import picross_solver.solver_utils as SU
-from picross_solver.exceptions.picross_exceptions import UnsolvableException
-from picross_solver.objects.field_state import Field
-from picross_solver.objects.state import State
+from picross_solver.exceptions import UnsolvableException
+from picross_solver.objects import Field, State
 
 
 class Solver:
