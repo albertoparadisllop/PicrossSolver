@@ -56,3 +56,7 @@ print(solver.current_state)
 ## Notes
 
 By default uses an algorithm, `Solver.SPINMEM` where the possibilities for each "bar" is stored in the Solver state, and filters according to those. The alternate algorithm, `Solver.SPIN` does the same but recalculates all of the bar possibilities given the constraints on each iteration, so its quite a bit slower. Just use `Solver.SPINMEM` if you dont mind the spaghetti code, and give `Solver.SPIN` a try if the other one fails for any reason.
+
+## Other
+
+Thanks to my friend Chalbus for getting convincing me to do this. Please [check them out on twitter](https://twitter.com/Chalbusoid). :D
