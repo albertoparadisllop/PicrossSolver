@@ -63,4 +63,5 @@ if __name__ == "__main__":
     # print(time_mem)
     # print(time_normal)
     
+    # test_solver_big_spin()
     test_solver_big_spinmem()

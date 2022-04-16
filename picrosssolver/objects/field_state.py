@@ -5,8 +5,15 @@ from numpy import full as np_full, transpose
 from picrosssolver.objects.state import State
 
 class Field:
-    
-    def __init__(self, column_values, row_values):
+    """Represents a picross field with its constraints and grid.
+    """
+    def __init__(self, column_values:list, row_values:list):
+        """Create Picross Field from given column and row constraints
+
+        Args:
+            column_values (list): Column constraints
+            row_values (list): Row constraints
+        """
         self.x = len(column_values)
         self.y = len(row_values)
         self.column_values = column_values
@@ -15,12 +22,26 @@ class Field:
                                  fill_value=State.INDET)
     
     @classmethod
-    def copy_field(cls, copy_from):
-        new_field = Field(copy_from.column_values,
-                          row_values=copy_from.row_values)
+    def copy_field(cls, copy_from:'Field') -> 'Field':
+        """Performs a deepcopy on the given field.
+
+        Args:
+            copy_from (Field): Field to copy data from.
+
+        Returns:
+            Field: Copied field.
+        """
+        new_field = cls(copy_from.column_values,
+                        row_values=copy_from.row_values)
         new_field.field_arr = deepcopy(copy_from.field_arr)
+        return new_field
         
-    def is_solved(self):
+    def is_solved(self) -> bool:
+        """Whether the field is "solved" or not. A field is solved when all cells are either FILL or EMPTY.
+
+        Returns:
+            bool: True if the field is solved, false if not.
+        """
         return State.INDET not in self.field_arr
     
     def __repr__(self) -> str:

@@ -1,12 +1,23 @@
 from numpy import array as np_array
 from picrosssolver.objects.state import State
+from picrosssolver.objects.field_state import Field
 from picrosssolver.exceptions.picross_exceptions import SolverLogicException
 
 from copy import deepcopy
 import logging
 
 
-def get_bar_and_constraints(current_state, column=None, row=None):
+def get_bar_and_constraints(current_state:Field, column:int=None, row:int=None) -> tuple[list[int], list[int]]:
+    """Gets bar values and constraints from a given row/column.
+
+    Args:
+        current_state (Field): Field to get data from
+        column (int, optional): Column number. Exclusive with row. Defaults to None.
+        row (int, optional): Row number. Exclusive with column. Defaults to None.
+
+    Returns:
+        tuple[list[int], list[int]]: Tuple of bar values followed by constraints for that bar
+    """
     if column is not None and row is not None:
             raise SolverLogicException("Only a row or a column can be specified, not both")
     if column is not None:
@@ -21,7 +32,17 @@ def get_bar_and_constraints(current_state, column=None, row=None):
         raise SolverLogicException("No row or column to solve specified in Solve Step")
     return current_bar, current_contraints
 
-def solve_single_bar(bar, constraints, bar_length):
+def solve_single_bar(bar:list[int], constraints:list[int], bar_length:int) -> list[int]:
+    """Given a bar and its constraints, return deduction from both
+
+    Args:
+        bar (list[int]): Bar to be updated. Result will be a further solution from this state (or the same if no deductions can be made).
+        constraints (list[int]): Bar constraints to be used.
+        bar_length (int): length of bar.
+
+    Returns:
+        list[int]: List with new values for bar
+    """
     # Get all possibilities for those constraints in the bar
     possibilities = get_possibilities_from_constraints(constraints, bar_length, current_bar_filter=bar)
 
@@ -30,7 +51,17 @@ def solve_single_bar(bar, constraints, bar_length):
     return get_result_from_possibilities(possibilities)
 
 
-def get_possibilities_from_constraints(constraints, bar_length, current_bar_filter=None):
+def get_possibilities_from_constraints(constraints:list[int], bar_length:int, current_bar_filter:list[State]=None) -> list[list[State]]:
+    """Get all possibilities for a solution given a constraint, bar length and optionally, filter possible solutions by a given bar.
+
+    Args:
+        constraints (list[int]): bar constraints
+        bar_length (int): Bar length to be used
+        current_bar_filter (list[State], optional): Bar to filter possible solutions from. Defaults to None.
+
+    Returns:
+        list[list[State]]: List containing possible bars.
+    """
     spaces = bar_length-sum(constraints)
     intermediate_spaces = (len(constraints)-1)
     leeway = spaces-intermediate_spaces
@@ -55,10 +86,20 @@ def get_possibilities_from_constraints(constraints, bar_length, current_bar_filt
                 new_possibilities.append(new_possibility)
         possibilities = new_possibilities
         logging.debug(possibilities)
-    return regenerate_from_space_data(possibilities, constraints, current_bar_filter=current_bar_filter)
+    return _regenerate_from_space_data(possibilities, constraints, current_bar_filter=current_bar_filter)
 
 
-def regenerate_from_space_data(possibilities, constraints, current_bar_filter=None):
+def _regenerate_from_space_data(possibilities:list[list[State]], constraints:list[int], current_bar_filter:list[State]=None) -> list[list[State]]:
+    """Regenerate bar values from the weird way they were generated in get_possibilities_from_constraints()
+
+    Args:
+        possibilities (list[list[State]]): Possibilities (each is a list of non-obligatory spaces in each position)
+        constraints (list[int]): constraints to be used
+        current_bar_filter (list[State], optional): Bar to filter results from. Defaults to None.
+
+    Returns:
+        list[list[State]]: _description_
+    """
     bar_possibility_list = []
     for possibility in possibilities:
         new_bar = []
@@ -71,7 +112,16 @@ def regenerate_from_space_data(possibilities, constraints, current_bar_filter=No
     return bar_possibility_list
 
 
-def bar_compatible(bar1, bar2):
+def bar_compatible(bar1:list[State], bar2:list[State]) -> bool:
+    """Whether the two bars could be part of the solution for a single bar (no contradictions).
+
+    Args:
+        bar1 (list[State]): One bar to be compared.
+        bar2 (list[State]): Second bar to be compared.
+
+    Returns:
+        bool: Whether bars are compatible.
+    """
     res = []
     if len(bar1) != len(bar2):
         raise SolverLogicException("Bars of unequal length compared")
@@ -83,7 +133,15 @@ def bar_compatible(bar1, bar2):
     return all(res)
 
 
-def get_result_from_possibilities(bar_list):
+def get_result_from_possibilities(bar_list:list[list[State]]) -> list[State]:
+    """Given a set of possibilities, get a solution of common points of all possibilities.
+
+    Args:
+        bar_list (list[list[State]]): Possibility list
+
+    Returns:
+        list[State]: Bar aggregation of all possibilities
+    """
     possibilities = np_array(bar_list)
     result = []
     for i in range(possibilities.shape[1]):
@@ -92,7 +150,15 @@ def get_result_from_possibilities(bar_list):
     return result
 
 
-def get_conclusion_from_bar_position(position_res_list):
+def get_conclusion_from_bar_position(position_res_list:list[State]) -> State:
+    """From a given set of States for a given position from multiple possibilities, what the conclusion is.
+
+    Args:
+        position_res_list (list[State]): States for the same bar-position in multiple possibilities.
+
+    Returns:
+        State: Logical conclusion from those possibilities.
+    """
     first_res = position_res_list[0]
     all_equal = True
     
